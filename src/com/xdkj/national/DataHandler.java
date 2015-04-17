@@ -29,7 +29,10 @@ public class DataHandler extends IoHandlerAdapter {
 	@Override
 	public void sessionIdle(IoSession session, IdleStatus status) {
 		
-		session.close(true);
+		if(session.getIdleCount(status) == 1){
+			session.close(true);
+		}
+		
 	}
 	
 	@Override
@@ -82,7 +85,7 @@ public class DataHandler extends IoHandlerAdapter {
 				//集中器发送过来的数据  发给PC
 				IoSession send = null;
 				send = pc.get(frame.getAddrstr());
-				if(send != null && (boolean)session.getAttribute("online")){
+				if(send != null && (boolean)send.getAttribute("online")){
 					send.write(message);
 				}
 				break;
@@ -146,7 +149,12 @@ public class DataHandler extends IoHandlerAdapter {
 	
 	@Override
 	public void sessionClosed(IoSession session) throws Exception{
-		session.setAttribute("online", false);
+		if(session.getAttribute("online") == null){
+			//son of bitch
+		}else{
+			session.setAttribute("online", false);
+		}
+		
 	}
 	
 	
