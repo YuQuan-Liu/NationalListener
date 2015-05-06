@@ -1,5 +1,6 @@
 ﻿package com.xdkj.national;
 
+import java.util.Calendar;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.mina.core.buffer.IoBuffer;
@@ -9,6 +10,8 @@ import org.apache.mina.core.session.IoSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.xdkj.hdlistener.dao.ListenerLogDao;
+import com.xdkj.hdlistener.obj.ListenerLog;
 import com.xdkj.national.codec.Frame;
 
 
@@ -58,6 +61,7 @@ public class DataHandler extends IoHandlerAdapter {
 					gprs.put(frame.getAddrstr(), session);
 					//确认
 					session.write(new Frame(0,(byte)(Frame.ZERO|Frame.PRM_S_LINE),Frame.AFN_YES,(byte)(Frame.ZERO|Frame.SEQ_FIN|Frame.SEQ_FIR),(byte)0x01,frame.getAddr(),new byte[0]));
+					ListenerLogDao.insertLog(new ListenerLog(frame.getAddrstr(), "0", "1", "",session.getRemoteAddress().toString()));
 					break;
 				case 0x02:
 					//退出
@@ -67,6 +71,8 @@ public class DataHandler extends IoHandlerAdapter {
 					//心跳
 					gprs.put(frame.getAddrstr(), session);
 					session.write(new Frame(0,(byte)(Frame.ZERO|Frame.PRM_S_LINE),Frame.AFN_YES,(byte)(Frame.ZERO|Frame.SEQ_FIN|Frame.SEQ_FIR),(byte)0x01,frame.getAddr(),new byte[0]));
+					System.out.println(frame.getAddrstr()+"HeartBeat"+Calendar.getInstance().getTime().toString());
+					ListenerLogDao.insertLog(new ListenerLog(frame.getAddrstr(), "0", "4", "",session.getRemoteAddress().toString()));
 					break;
 				}
 				break;
@@ -87,6 +93,7 @@ public class DataHandler extends IoHandlerAdapter {
 				send = pc.get(frame.getAddrstr());
 				if(send != null && (boolean)send.getAttribute("online")){
 					send.write(message);
+					ListenerLogDao.insertLog(new ListenerLog(frame.getAddrstr(), "0", "3", byteArrayToHexStr(frame.getFrame(),frame.getFrame().length),session.getRemoteAddress().toString()));
 				}
 				break;
 				
@@ -104,8 +111,10 @@ public class DataHandler extends IoHandlerAdapter {
 					//确认
 					if(gprs.containsKey(frame.getAddrstr()) && (boolean)gprs.get(frame.getAddrstr()).getAttribute("online")){
 						session.write(new Frame(0,(byte)(Frame.ZERO|Frame.PRM_S_LINE),Frame.AFN_YES,(byte)(Frame.ZERO|Frame.SEQ_FIN|Frame.SEQ_FIR),(byte)0x01,frame.getAddr(),new byte[0]));
+						ListenerLogDao.insertLog(new ListenerLog(frame.getAddrstr(), "1", "3", "GPRS",session.getRemoteAddress().toString()));
 					}else{
 						session.write(new Frame(0,(byte)(Frame.ZERO|Frame.PRM_S_LINE),Frame.AFN_YES,(byte)(Frame.ZERO|Frame.SEQ_FIN|Frame.SEQ_FIR),(byte)0x02,frame.getAddr(),new byte[0]));
+						ListenerLogDao.insertLog(new ListenerLog(frame.getAddrstr(), "1", "3", "NOGPRS",session.getRemoteAddress().toString()));
 					}
 					break;
 				case 0x02:
@@ -133,6 +142,7 @@ public class DataHandler extends IoHandlerAdapter {
 				send = gprs.get(frame.getAddrstr());
 				if(send != null && (boolean)send.getAttribute("online")){
 					send.write(message);
+					ListenerLogDao.insertLog(new ListenerLog(frame.getAddrstr(), "1", "3", byteArrayToHexStr(frame.getFrame(),frame.getFrame().length),session.getRemoteAddress().toString()));
 				}else{
 					session.write(new Frame(0,(byte)(Frame.ZERO|Frame.PRM_S_LINE),Frame.AFN_YES,(byte)(Frame.ZERO|Frame.SEQ_FIN|Frame.SEQ_FIR),(byte)0x02,frame.getAddr(),new byte[0]));
 				}
