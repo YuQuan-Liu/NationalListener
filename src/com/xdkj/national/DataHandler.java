@@ -107,14 +107,20 @@ public class DataHandler extends IoHandlerAdapter {
 				switch(frame.getFn()){
 				case 0x01:
 					//登录
-					pc.put(frame.getAddrstr(), session);
-					//确认
-					if(gprs.containsKey(frame.getAddrstr()) && (boolean)gprs.get(frame.getAddrstr()).getAttribute("online")){
-						session.write(new Frame(0,(byte)(Frame.ZERO|Frame.PRM_S_LINE),Frame.AFN_YES,(byte)(Frame.ZERO|Frame.SEQ_FIN|Frame.SEQ_FIR),(byte)0x01,frame.getAddr(),new byte[0]));
-						ListenerLogDao.insertLog(new ListenerLog(frame.getAddrstr(), "1", "3", "GPRS",session.getRemoteAddress().toString()));
-					}else{
+					IoSession oldsession = pc.get(frame.getAddrstr());
+					if(oldsession != null && (boolean)oldsession.getAttribute("online")){
 						session.write(new Frame(0,(byte)(Frame.ZERO|Frame.PRM_S_LINE),Frame.AFN_YES,(byte)(Frame.ZERO|Frame.SEQ_FIN|Frame.SEQ_FIR),(byte)0x02,frame.getAddr(),new byte[0]));
-						ListenerLogDao.insertLog(new ListenerLog(frame.getAddrstr(), "1", "3", "NOGPRS",session.getRemoteAddress().toString()));
+						ListenerLogDao.insertLog(new ListenerLog(frame.getAddrstr(), "1", "3", "WAIT",session.getRemoteAddress().toString()));
+					}else{
+						pc.put(frame.getAddrstr(), session);
+						//确认
+						if(gprs.containsKey(frame.getAddrstr()) && (boolean)gprs.get(frame.getAddrstr()).getAttribute("online")){
+							session.write(new Frame(0,(byte)(Frame.ZERO|Frame.PRM_S_LINE),Frame.AFN_YES,(byte)(Frame.ZERO|Frame.SEQ_FIN|Frame.SEQ_FIR),(byte)0x01,frame.getAddr(),new byte[0]));
+							ListenerLogDao.insertLog(new ListenerLog(frame.getAddrstr(), "1", "3", "GPRS",session.getRemoteAddress().toString()));
+						}else{
+							session.write(new Frame(0,(byte)(Frame.ZERO|Frame.PRM_S_LINE),Frame.AFN_YES,(byte)(Frame.ZERO|Frame.SEQ_FIN|Frame.SEQ_FIR),(byte)0x02,frame.getAddr(),new byte[0]));
+							ListenerLogDao.insertLog(new ListenerLog(frame.getAddrstr(), "1", "3", "NOGPRS",session.getRemoteAddress().toString()));
+						}
 					}
 					break;
 				case 0x02:
