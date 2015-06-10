@@ -148,9 +148,10 @@ public class Frame {
 		this.dir = (byte) ((this.control & 0xFF) >> 7);
 		this.addr = Arrays.copyOfRange(frame, 7, 12);
 		for(int i = 0;i < 5;i++){
-			this.addrstr = this.addrstr+Integer.toHexString(addr[i]&0xFF);
+			this.addrstr = this.addrstr+String.format("%02x", addr[i]&0xFF);
 		}
-				
+//		this.addrstr = new StringBuilder(this.addrstr).reverse().toString();
+		
 		this.data = Arrays.copyOfRange(frame, 12, this.frameLength-2);
 		this.afn = frame[12];
 		this.seq = frame[13];
@@ -177,6 +178,9 @@ public class Frame {
 		bf.put((byte) 0x68);
 		bf.put(control);
 		bf.put(addr);
+//		for(int i = 0;i < 5;i++){
+//			bf.put(addr[4-i]);
+//		}
 		bf.put(afn);
 		bf.put(seq);
 		bf.put(fn);
