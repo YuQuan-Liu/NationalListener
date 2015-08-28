@@ -56,15 +56,18 @@ public class RequestDecoder extends CumulativeProtocolDecoder {
 				byte[] frame = new byte[decoderState.length+8];
 //				in.get(frame,decoderState.nonlength,frame.length);
 				
+//				System.out.println("remain"+in.remaining()+"limit"+in.limit()+"position"+in.position());
+				
 				for (int i = 0; i < frame.length; i++)
 					frame[i] = in.get(i);
 				
-				in.position(decoderState.length+8);
 				if(checkFrame(frame)){
 					//deal the frame  and  write out
 					out.write(new Frame(frame));
 					decoderState.start = false;
 					decoderState.length = 0;
+//					in.position(decoderState.length+8);
+					in.position(in.remaining());
 					return true;
 				}else{
 					decoderState.start = false;
