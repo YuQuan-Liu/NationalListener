@@ -84,8 +84,6 @@ public class DataHandler extends IoHandlerAdapter {
 				//控制命令  由PC发出  集中器返回确认否认帧
 			case 0x0A:
 				//查询参数  由PC发出  集中器返回数据帧
-			case 0x0B:
-				//实时数据   由PC发出  集中器返回数据帧
 			case 0x0C:
 				//历史数据   由PC发出  集中器返回数据帧
 				//集中器发送过来的数据  发给PC
@@ -94,6 +92,43 @@ public class DataHandler extends IoHandlerAdapter {
 				if(send != null && (boolean)send.getAttribute("online")){
 					send.write(message);
 					ListenerLogDao.insertLog(new ListenerLog(frame.getAddrstr(), "0", "3", byteArrayToHexStr(frame.getFrame(),frame.getFrame().length),session.getRemoteAddress().toString()));
+				}
+				break;
+			case 0x0B:
+				//实时数据   由PC发出  集中器返回数据帧
+				
+				//发送应答帧  ，将数据帧判断  发送给抄表程序
+				Frame data_f = (Frame) message;
+				byte slave_seq_ = (byte) (data_f.getSeq() & 0x0F);
+				Frame data_ack = new Frame(0, (byte)(Frame.ZERO), 
+						Frame.AFN_YES, (byte)(Frame.ZERO|Frame.SEQ_FIN|Frame.SEQ_FIR | slave_seq_), 
+						(byte)0x01, data_f.getAddr(), new byte[0]);
+				session.write(data_ack);
+				
+				//如果是单独帧  或者是最后一帧   判断序列号   session中保存发送到服务器的序列号
+				int seq_sign = data_f.getSeq() & 0x60;  //帧位置的标识符
+				if(seq_sign == 0x60 || seq_sign == 0x20){
+					byte session_seq = (byte) session.getAttribute("slave_seq",0x10);
+					if(slave_seq_ != session_seq){
+						//单独帧  最后一帧   session中的序列号 与帧的序列号不同     发送给抄表服务器。
+						session.setAttribute("slave_seq",slave_seq_);
+						send = pc.get(frame.getAddrstr());
+						if(send != null && (boolean)send.getAttribute("online")){
+							send.write(message);
+							ListenerLogDao.insertLog(new ListenerLog(frame.getAddrstr(), "0", "3", byteArrayToHexStr(frame.getFrame(),frame.getFrame().length),session.getRemoteAddress().toString()));
+						}
+					}else{
+						//这一帧已经发送给抄表服务器了。
+					}
+					
+				}else{
+					//中间帧  首帧
+					session.setAttribute("slave_seq",slave_seq_);
+					send = pc.get(frame.getAddrstr());
+					if(send != null && (boolean)send.getAttribute("online")){
+						send.write(message);
+						ListenerLogDao.insertLog(new ListenerLog(frame.getAddrstr(), "0", "3", byteArrayToHexStr(frame.getFrame(),frame.getFrame().length),session.getRemoteAddress().toString()));
+					}
 				}
 				break;
 				
