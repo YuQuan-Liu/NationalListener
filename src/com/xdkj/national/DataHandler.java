@@ -108,7 +108,7 @@ public class DataHandler extends IoHandlerAdapter {
 				//如果是单独帧  或者是最后一帧   判断序列号   session中保存发送到服务器的序列号
 				int seq_sign = data_f.getSeq() & 0x60;  //帧位置的标识符
 				if(seq_sign == 0x60 || seq_sign == 0x20){
-					byte session_seq = (byte) session.getAttribute("slave_seq",0x10);
+					byte session_seq = (byte) session.getAttribute("slave_seq",(byte)0x10);
 					if(slave_seq_ != session_seq){
 						//单独帧  最后一帧   session中的序列号 与帧的序列号不同     发送给抄表服务器。
 						session.setAttribute("slave_seq",slave_seq_);
@@ -147,9 +147,10 @@ public class DataHandler extends IoHandlerAdapter {
 						session.write(new Frame(0,(byte)(Frame.ZERO|Frame.PRM_S_LINE),Frame.AFN_YES,(byte)(Frame.ZERO|Frame.SEQ_FIN|Frame.SEQ_FIR),(byte)0x02,frame.getAddr(),new byte[0]));
 						ListenerLogDao.insertLog(new ListenerLog(frame.getAddrstr(), "1", "3", "WAIT",session.getRemoteAddress().toString()));
 					}else{
-						pc.put(frame.getAddrstr(), session);
 						//确认
 						if(gprs.containsKey(frame.getAddrstr()) && (boolean)gprs.get(frame.getAddrstr()).getAttribute("online")){
+							//集中器在线
+							pc.put(frame.getAddrstr(), session);
 							session.write(new Frame(0,(byte)(Frame.ZERO|Frame.PRM_S_LINE),Frame.AFN_YES,(byte)(Frame.ZERO|Frame.SEQ_FIN|Frame.SEQ_FIR),(byte)0x01,frame.getAddr(),new byte[0]));
 							ListenerLogDao.insertLog(new ListenerLog(frame.getAddrstr(), "1", "3", "GPRS",session.getRemoteAddress().toString()));
 						}else{
