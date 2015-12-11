@@ -86,6 +86,8 @@ public class DataHandler extends IoHandlerAdapter {
 				//查询参数  由PC发出  集中器返回数据帧
 			case 0x0C:
 				//历史数据   由PC发出  集中器返回数据帧
+			case 0x0F:
+				//抄全部表时   集中器上报的抄表进行中的帧  防止抄表定时超时 9s一次
 				//集中器发送过来的数据  发给PC
 				IoSession send = null;
 				send = pc.get(frame.getAddrstr());
