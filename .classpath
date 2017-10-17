@@ -8,8 +8,8 @@
 	<classpathentry kind="lib" path="lib/apache-log4j-2.1-bin/log4j-slf4j-impl-2.1.jar"/>
 	<classpathentry kind="lib" path="lib/apache-log4j-2.1-bin/log4j-core-2.1.jar"/>
 	<classpathentry kind="lib" path="lib/apache-log4j-2.1-bin/log4j-api-2.1.jar"/>
-	<classpathentry kind="lib" path="lib/c3p0-0.9.5.bin/c3p0-0.9.5/lib/c3p0-0.9.5.jar"/>
+	<classpathentry kind="lib" path="lib/c3p0-0.9.5.bin/c3p0-0.9.5/lib/c3p0-0.9.5.jar" sourcepath="lib/c3p0-0.9.5.bin/c3p0-0.9.5/src/c3p0-0.9.5-sources.jar"/>
 	<classpathentry kind="lib" path="lib/sqljdbc_4.0.2206.100_enu/sqljdbc_4.0/enu/sqljdbc4.jar"/>
-	<classpathentry kind="lib" path="E:/文档/Java/lib/mysql-connector-5.1.8.jar"/>
+	<classpathentry kind="lib" path="lib/mysql-connector-5.1.8.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
